@@ -37,3 +37,15 @@ Anon Key در سایت عمومی قابل مشاهده است؛ امنیت وا
 - `supabase-security-final.sql` is the final RLS/Storage policy migration. Run it in the Supabase SQL Editor for the project used by this site.
 - Magic-link login sends the email before checking `owner_access`; the owner check happens only after Supabase authenticates the user.
 - `admin.html` no longer pre-fills the owner email.
+
+
+## اتصال دامنه tavonikohenor.ir
+
+این پروژه برای دامنه نهایی `tavonikohenor.ir` آماده شده است. باز شدن دامنه اصلی، `www` و HTTPS با کد HTML/JS تعیین نمی‌شود و باید DNS دامنه و Custom Domain در GitHub Pages تنظیم شود.
+
+تنظیمات موردنیاز DNS:
+- رکوردهای A برای دامنه اصلی به IPهای GitHub Pages: `185.199.108.153`، `185.199.109.153`، `185.199.110.153`، `185.199.111.153`
+- رکورد CNAME برای `www` به `farrokhzad743-dot.github.io`
+- سپس در تنظیمات GitHub Pages دامنه سفارشی `tavonikohenor.ir` ثبت و HTTPS فعال شود.
+
+برای نسخه تست روی `testerkoh` فایل CNAME نباید داخل مخزن تست قرار بگیرد.
