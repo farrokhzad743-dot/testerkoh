@@ -108,17 +108,30 @@ async function fetchText(url, timeoutMs = 9000) {
   try { const response = await fetch(url, { cache:'force-cache', signal:controller.signal }); if (!response.ok) throw new Error('HTTP '+response.status); return await response.text(); }
   finally { clearTimeout(timeout); }
 }
-async function resolveMediaUrl(pageUrl) {
+async function resolveMediaUrl(pageUrl, attempts = 2) {
   if (!pageUrl) return '';
   if (/^(?:data:|blob:)/i.test(pageUrl)) return pageUrl;
-  if (/\.(?:jpg|jpeg|png|webp|gif|svg)(?:[?#].*)?$/i.test(pageUrl)) return pageUrl;
+  if (/^https:\/\/i\.ibb\.co\//i.test(pageUrl) || /\.(?:jpg|jpeg|png|webp|gif|svg)(?:[?#].*)?$/i.test(pageUrl)) return pageUrl;
   const cached = cachedImageUrl(pageUrl); if (cached) return cached;
   if (!/https:\/\/ibb\.co\//i.test(pageUrl)) return pageUrl;
   const encoded = encodeURIComponent(pageUrl);
-  const resolvers = [`https://api.allorigins.win/raw?url=${encoded}`, `https://r.jina.ai/${pageUrl}`];
-  for (const endpoint of resolvers) { try { const imageUrl = directImageFromText(await fetchText(endpoint)); if (imageUrl) { saveImageUrl(pageUrl, imageUrl); return imageUrl; } } catch (error) { console.warn('Image resolver failed:', endpoint, error); } }
+  const resolvers = [
+    `https://api.allorigins.win/raw?url=${encoded}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
+    `https://corsproxy.io/?url=${encoded}`,
+    `https://r.jina.ai/${pageUrl}`
+  ];
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    for (const endpoint of resolvers) {
+      try {
+        const imageUrl = directImageFromText(await fetchText(endpoint, 12000));
+        if (imageUrl) { saveImageUrl(pageUrl, imageUrl); return imageUrl; }
+      } catch (error) { console.warn('Image resolver failed:', endpoint, error); }
+    }
+  }
   return '';
 }
+
 function setImageFallback(img, label='تصویر در دسترس نیست') { img.removeAttribute('src'); img.alt=label; img.classList.add('image-failed'); img.parentElement?.classList.add('image-failed'); }
 async function hydrateImage(img, pageUrl) { if (!img || !pageUrl) { setImageFallback(img); return false; } const direct=await resolveMediaUrl(pageUrl); if (!direct) { setImageFallback(img); return false; } img.src=direct; img.dataset.resolved='1'; img.classList.remove('image-failed'); img.parentElement?.classList.remove('image-failed'); return true; }
 function normalizeDate(value) { const raw=String(value||'').trim(); const match=raw.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/); if (!match) return raw; return [match[1],match[2].padStart(2,'0'),match[3].padStart(2,'0')].join('/'); }
@@ -157,7 +170,7 @@ function articleParagraphs(text) {
   return String(text || '').split(/\n+/).map(x => x.trim()).filter(Boolean).map(x => `<p>${esc(x)}</p>`).join('');
 }
 
-async function showArticle(index, updateHash = true) {
+async function showArticle(index) {
   const item = news[index];
   if (!item || !articleContent) return;
   articleContent.innerHTML = `
@@ -165,18 +178,25 @@ async function showArticle(index, updateHash = true) {
     <time class="article-meta">${esc(normalizeDate(item.date))}</time>
     <div class="article-gallery" id="articleGallery" aria-label="تصاویر خبر"></div>
     <div class="article-text">${articleParagraphs(item.body)}</div>`;
-  if (updateHash) history.replaceState({ article: index }, '', '#news-' + index);
+  // Do not write the selected article into the URL hash. Refreshing the page must never reopen a news modal.
   openModal('articleModal');
   const gallery = $('#articleGallery');
-  const resolvedImages = await Promise.all(item.images.map(resolveMediaUrl));
-  resolvedImages.forEach((direct, i) => {
-    if (!direct) return;
+  if (!gallery) return;
+  gallery.innerHTML = '<div class="image-loading-box">در حال بارگذاری تصاویر خبر…</div>';
+  const resolvedImages = [];
+  for (let i = 0; i < item.images.length; i++) {
+    const direct = await resolveMediaUrl(item.images[i], 3);
+    if (!direct) continue;
+    resolvedImages.push(direct);
+    if (gallery.querySelector('.image-loading-box')) gallery.innerHTML = '';
     const button = document.createElement('button');
-    button.type = 'button'; button.className = 'gallery-thumb';
-    button.innerHTML = `<img src="${esc(direct)}" alt="${esc(item.title)} - تصویر" loading="lazy">`;
+    button.type = 'button';
+    button.className = 'gallery-thumb';
+    button.innerHTML = `<img src="${esc(direct)}" alt="${esc(item.title)} - تصویر ${i + 1}" loading="lazy">`;
     gallery.appendChild(button);
-    button.addEventListener('click', () => openLightbox(resolvedImages.filter(Boolean), i, item.title));
-  });
+    const imageIndex = resolvedImages.length - 1;
+    button.addEventListener('click', () => openLightbox(resolvedImages, imageIndex, item.title));
+  }
   if (!gallery.children.length) gallery.innerHTML = '<div class="image-failed-box">تصاویر خبر در دسترس نیستند.</div>';
 }
 
@@ -208,6 +228,15 @@ function resetTimerProgress(){ timerStartedAt=performance.now(); const fill=$('#
 function stopTimer(){ clearInterval(timer); timer=null; }
 function restartTimer(){ stopTimer(); resetTimerProgress(); if(news.length<2||!newsSectionVisible||$('.modal.open')) return; timer=setInterval(()=>{ const elapsed=performance.now()-timerStartedAt; const fill=$('#newsTimerFill'); if(fill) fill.style.width=Math.min(100,(elapsed/TIMER_MS)*100)+'%'; if(elapsed>=TIMER_MS) goToNews(activeNews+1); },80); }
 
+async function prefetchNewsImages() {
+  // Warm the cache in the background so the article gallery opens with images already resolved.
+  for (const item of news) {
+    for (const url of item.images) {
+      if (!cachedImageUrl(url)) await resolveMediaUrl(url, 1);
+    }
+  }
+}
+
 function renderIranDate() {
   const element = $('#iranDate'); if (!element) return;
   try { element.textContent = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { timeZone:'Asia/Tehran', day:'numeric', month:'long', year:'numeric' }).format(new Date()); } catch (_) { element.textContent = ''; }
@@ -230,8 +259,10 @@ async function renderDoc(index = 0) {
   $('.document-image-button', viewer)?.addEventListener('click', () => openLightbox([direct], 0, doc.title));
 }
 
-['logoRight', 'logoLeft'].forEach(id => { const img = document.getElementById(id); if (img) hydrateImage(img, img.dataset.pageUrl); });
-renderNews(); renderIranDate(); renderDoc(0);
+['logoLeft'].forEach(id => { const img = document.getElementById(id); if (img) hydrateImage(img, img.dataset.pageUrl); });
+const logoRight = document.getElementById('logoRight');
+logoRight?.addEventListener('error', () => { if (!logoRight.dataset.resolved) hydrateImage(logoRight, logoRight.dataset.pageUrl); }, { once: true });
+renderNews(); renderIranDate(); renderDoc(0); prefetchNewsImages();
 setInterval(renderIranDate, 60000);
 
 $('#openNews')?.addEventListener('click', () => openModal('newsModal'));
@@ -270,11 +301,7 @@ if ('IntersectionObserver' in window && newsSection) {
   const observer = new IntersectionObserver(entries => { newsSectionVisible = entries[0]?.isIntersecting ?? true; if (newsSectionVisible) restartTimer(); else stopTimer(); }, { threshold:0.05 });
   observer.observe(newsSection);
 }
-window.addEventListener('hashchange', () => {
-  const match = location.hash.match(/^#news-(\d+)$/);
-  if (match && news[Number(match[1])]) showArticle(Number(match[1]), false);
-  else if (!location.hash) closeModal('articleModal');
-});
-const initialMatch = location.hash.match(/^#news-(\d+)$/);
-if (initialMatch && news[Number(initialMatch[1])]) showArticle(Number(initialMatch[1]), false);
+// Hash-based article auto-open is intentionally disabled: refresh must always start on the normal homepage.
+if (location.hash.match(/^#news-\d+$/)) history.replaceState(null, '', location.pathname + location.search);
+
 restartTimer();
