@@ -33,23 +33,6 @@
   </header>
 
   <main>
-    <section class="hero container" aria-labelledby="heroTitle">
-      <div class="hero-copy">
-        <span class="eyebrow">پایگاه اطلاع‌رسانی</span>
-        <h1 id="heroTitle">کوه نور کهگیلویه؛<br><strong>برای خدمت، تولید و ارتباط با جامعه عشایری</strong></h1>
-        <p>مرجع انتشار اخبار، رویدادها، اسناد و اطلاعات عمومی شرکت تعاونی عشایری کوه نور کهگیلویه.</p>
-        <div class="hero-actions">
-          <a class="primary-action" href="#news">آخرین اخبار <span>←</span></a>
-          <a class="secondary-action" href="#about">درباره شرکت</a>
-        </div>
-      </div>
-      <div class="hero-panel" aria-label="نمای کلی فعالیت‌های سایت">
-        <div class="hero-stat"><strong>اخبار</strong><span>اطلاع‌رسانی رویدادها و خدمات</span></div>
-        <div class="hero-stat"><strong>اسناد</strong><span>دسترسی آسان به مدارک عمومی</span></div>
-        <div class="hero-stat"><strong>عشایر</strong><span>تمرکز بر جامعه و ظرفیت‌های آن</span></div>
-      </div>
-    </section>
-
     <section class="news-section container" id="news" aria-labelledby="newsTitle">
       <div class="section-top">
         <div><span class="eyebrow">تازه‌ترین اطلاع‌رسانی</span><h2 id="newsTitle">آخرین اخبار</h2></div>
@@ -59,10 +42,11 @@
         </div>
       </div>
       <div class="news-carousel-wrap">
-        <button class="carousel-arrow next" id="nextNews" type="button" aria-label="خبر بعدی">→</button>
+        <button class="carousel-arrow prev" id="prevNews" type="button" aria-label="خبر قبلی">→</button>
         <div class="news-track" id="newsTrack" tabindex="0" aria-label="فهرست آخرین اخبار"></div>
-        <button class="carousel-arrow prev" id="prevNews" type="button" aria-label="خبر قبلی">←</button>
+        <button class="carousel-arrow next" id="nextNews" type="button" aria-label="خبر بعدی">←</button>
       </div>
+      <div class="news-timer" aria-label="زمان باقی‌مانده تا خبر بعدی"><span id="newsTimerFill"></span></div>
       <div class="dots" id="newsDots" aria-label="انتخاب خبر"></div>
     </section>
 
@@ -74,17 +58,17 @@
     </nav>
 
     <section class="content-section container" id="ashayer">
-      <div class="section-heading"><span>۰۱</span><h2>عشایر؛ سرمایه ملّی</h2></div>
+      <div class="section-heading"><h2>عشایر؛ سرمایه ملّی</h2></div>
       <div class="info-card"><div class="info-accent"></div><p id="ashayerExcerpt">جامعه عشایری ایران یکی از ارزشمندترین بخش‌های اجتماعی، فرهنگی و اقتصادی کشور است؛ جامعه‌ای که در تولید، حفظ میراث فرهنگی و ارتباط پایدار با سرزمین نقش مهمی دارد.</p><button class="read-more" type="button" data-content="ashayer">ادامه متن ←</button></div>
     </section>
 
     <section class="content-section container" id="cooperative">
-      <div class="section-heading"><span>۰۲</span><h2>چگونگی تعاونی</h2></div>
+      <div class="section-heading"><h2>چگونگی تعاونی</h2></div>
       <div class="info-card"><div class="info-accent"></div><p id="cooperativeExcerpt">تعاونی، سازوکاری برای مشارکت افراد دارای نیازها و اهداف مشترک است؛ تعاونی عشایری نیز با سازمان‌دهی ظرفیت اعضا، تأمین نیازها، ارائه خدمات و تقویت تولید و بازار به جامعه عشایری کمک می‌کند.</p><button class="read-more" type="button" data-content="cooperative">ادامه متن ←</button></div>
     </section>
 
     <section class="content-section container" id="documents">
-      <div class="section-heading"><span>۰۳</span><h2>اسناد و مدارک</h2></div>
+      <div class="section-heading"><h2>اسناد و مدارک</h2></div>
       <div class="document-buttons">
         <button class="document-tab active" type="button" data-doc="0">استعلام شناسه ملی</button>
         <button class="document-tab" type="button" data-doc="1">ثبت شرکت در دهدشت</button>
@@ -95,20 +79,26 @@
     </section>
 
     <section class="content-section container" id="about">
-      <div class="section-heading"><span>۰۴</span><h2>درباره ما</h2></div>
+      <div class="section-heading"><h2>درباره ما</h2></div>
       <div class="about-grid">
-        <div class="about-card">
+        <div class="about-card company-profile-card">
           <span class="eyebrow">کوه نور کهگیلویه</span>
-          <h3>پایگاه رسمی اطلاع‌رسانی شرکت</h3>
-          <p>این وب‌سایت برای انتشار اخبار و رویدادها، معرفی فعالیت‌های شرکت و دسترسی آسان به اسناد و اطلاعات عمومی راه‌اندازی شده است.</p>
-          <div class="supervision"><span>تحت نظارت</span><b>سازمان امور عشایر ایران</b></div>
+          <h3>مشخصات ثبتی شرکت</h3>
+          <div class="company-facts">
+            <div class="fact-row"><span>تاریخ تأسیس</span><strong>۱۳۷۳/۰۲/۲۸</strong></div>
+            <div class="fact-row"><span>شناسه ملی</span><strong>۱۰۸۶۱۹۱۴۸۳۹</strong></div>
+            <div class="fact-row"><span>کد اقتصادی</span><strong>۱۰۸۶۱۹۱۴۸۳۹</strong></div>
+            <div class="fact-row"><span>سرمایه ثبتی</span><strong>۱۷٬۰۰۰٬۰۰۰٬۰۰۰ ریال</strong></div>
+            <div class="fact-row"><span>کد پستی</span><strong>۷۵۷۱۸۳۴۳۸۵</strong></div>
+          </div>
         </div>
-        <div class="contact-card">
-          <span class="eyebrow">ارتباط و مراجعه</span>
-          <h3>اطلاعات تماس</h3>
-          <div class="contact-row"><span>محل فعالیت</span><strong>دهدشت، کهگیلویه</strong></div>
-          <div class="contact-row"><span>موضوع سایت</span><strong>اخبار، اسناد و معرفی شرکت</strong></div>
-          <p class="contact-note">اطلاعات تماس دقیق شرکت در صورت ثبت در داده‌های رسمی، از همین بخش قابل تکمیل است.</p>
+        <div class="contact-card company-management-card">
+          <span class="eyebrow">مدیریت شرکت</span>
+          <h3>هیئت مدیره و مدیرعامل</h3>
+          <div class="contact-row"><span>مدیرعامل</span><strong>محمدرحیم پروره</strong></div>
+          <div class="contact-row"><span>رئیس هیئت مدیره</span><strong>محمدطلا فرهمندیان</strong></div>
+          <a class="rasmio-link" href="https://rasmio.com/" target="_blank" rel="noopener noreferrer">مشاهده اطلاعات شرکت در رسمیو <span>←</span></a>
+          <p class="contact-note">اطلاعات این بخش بر اساس مشخصاتی است که برای معرفی شرکت در سایت ثبت شده است.</p>
         </div>
       </div>
     </section>
