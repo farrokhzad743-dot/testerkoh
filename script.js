@@ -38,21 +38,21 @@ const news = [
     images: ['https://ibb.co/xKWHYsJr','https://ibb.co/QFVJcQVQ','https://ibb.co/Rp2sWYQK','https://ibb.co/ycZD71PH','https://ibb.co/fV3Kdp6c','https://ibb.co/Zz5hgxk6','https://ibb.co/Y7rBLBWM']
   },
   {
-    date: '۲۹/۱۲/۱۴۰۳',
+    date: '۱۴۰۳/۱۲/۲۹',
     title: 'برگزاری مجمع عمومی عادی سالیانه شرکت',
     excerpt: 'جلسه مجمع عمومی عادی سالیانه شرکت تعاونی عشایری کوه نور دهدشت با حضور اکثریت اعضاء برگزار و صورت‌های مالی سال ۱۴۰۳ تصویب شد.',
     body: 'جلسه مجمع عمومی عادی سالیانه سال مالی منتهی به 1403/12/29 شرکت تعاونی عشایری کوه نور دهدشت با حضور اکثریت اعضاء برگزار گردید. در این جلسه صورتهای مالی سال 1403 به تصویب اعضاء مجمع رسید.',
     images: ['https://ibb.co/XrpwsJ9b','https://ibb.co/jZ11bjH6','https://ibb.co/WvZ3zLCH','https://ibb.co/kVxXv4ZL','https://ibb.co/Zpz2hFkS','https://ibb.co/Q7NrB892']
   },
   {
-    date: '۲۱/۹/۱۴۰۴',
+    date: '۱۴۰۴/۰۹/۲۱',
     title: 'توزیع نفت سفید به عشایر محترم حوزه',
     excerpt: 'توزیع نفت سفید به عشایر محترم حوزه در محوطه شرکت تعاونی عشایری کوه نور دهدشت انجام شد.',
     body: 'توزیع نفت سفید به عشایر محترم حوزه در محوطهٔ شرکت.',
     images: ['https://ibb.co/S7r9KY64','https://ibb.co/KcRShWN5']
   },
   {
-    date: '۲۱/۱۰/۱۴۰۰',
+    date: '۱۴۰۰/۱۰/۲۱',
     title: 'برگزاری مجمع عمومی فوق‌العاده شرکت',
     excerpt: 'جلسه مجمع عمومی بطور فوق العاده شرکت تعاونی عشایری کوه نور دهدشت برگزار و اساسنامه جدید شرکت به تصویب اعضاء رسید.',
     body: 'جلسه مجمع عمومی بطور فوق العاده شرکت تعاونی عشایری کوه نور دهدشت در تاریخ 1400/10/21 رأس ساعت 16 در محل شرکت واقع در دهدشت با حضور اکثریت اعضاء برگزار گردید. در این جلسه اساسنامه جدید شرکت با 70 ماده و 51 تبصره و 135 بند به تصویب اعضاء مجمع رسیده است.',
@@ -69,6 +69,8 @@ const docs = [
 
 let activeNews = 0;
 let timer = null;
+let timerStartedAt = 0;
+const TIMER_MS = 5300;
 let newsSectionVisible = true;
 let previousBodyOverflow = '';
 let currentLightboxImages = [];
@@ -89,61 +91,46 @@ function esc(value) {
 function imageCacheKey(pageUrl) { return 'kohenor-img:' + pageUrl; }
 function cachedImageUrl(pageUrl) { try { return localStorage.getItem(imageCacheKey(pageUrl)) || ''; } catch (_) { return ''; } }
 function saveImageUrl(pageUrl, imageUrl) { try { localStorage.setItem(imageCacheKey(pageUrl), imageUrl); } catch (_) {} }
-
 function directImageFromText(text) {
+  const html = String(text || '');
   const patterns = [
-    /https:\/\/i\.ibb\.co\/[A-Za-z0-9._\/-]+/i,
-    /https:\/\/[A-Za-z0-9.-]+\/[^\s)\]"']+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^\s)\]"']*)?/i
+    /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+    /https:\/\/i\.ibb\.co\/[A-Za-z0-9._\/-]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^\s"'<>]*)?/i
   ];
-  for (const pattern of patterns) {
-    const match = String(text || '').match(pattern);
-    if (match) return match[0].replace(/[),.;]+$/g, '');
-  }
+  for (const pattern of patterns) { const match = html.match(pattern); if (match) return (match[1] || match[0]).replace(/&amp;/g, '&').replace(/[),.;]+$/g, ''); }
   return '';
 }
-
+async function fetchText(url, timeoutMs = 9000) {
+  const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try { const response = await fetch(url, { cache:'force-cache', signal:controller.signal }); if (!response.ok) throw new Error('HTTP '+response.status); return await response.text(); }
+  finally { clearTimeout(timeout); }
+}
 async function resolveMediaUrl(pageUrl) {
   if (!pageUrl) return '';
   if (/^(?:data:|blob:)/i.test(pageUrl)) return pageUrl;
   if (/\.(?:jpg|jpeg|png|webp|gif|svg)(?:[?#].*)?$/i.test(pageUrl)) return pageUrl;
-  const cached = cachedImageUrl(pageUrl);
-  if (cached) return cached;
+  const cached = cachedImageUrl(pageUrl); if (cached) return cached;
   if (!/https:\/\/ibb\.co\//i.test(pageUrl)) return pageUrl;
-  try {
-    const response = await fetch('https://r.jina.ai/' + pageUrl, { cache: 'force-cache' });
-    if (!response.ok) throw new Error('resolver HTTP ' + response.status);
-    const imageUrl = directImageFromText(await response.text());
-    if (imageUrl) { saveImageUrl(pageUrl, imageUrl); return imageUrl; }
-  } catch (error) { console.warn('Could not resolve image:', pageUrl, error); }
+  const encoded = encodeURIComponent(pageUrl);
+  const resolvers = [`https://api.allorigins.win/raw?url=${encoded}`, `https://r.jina.ai/${pageUrl}`];
+  for (const endpoint of resolvers) { try { const imageUrl = directImageFromText(await fetchText(endpoint)); if (imageUrl) { saveImageUrl(pageUrl, imageUrl); return imageUrl; } } catch (error) { console.warn('Image resolver failed:', endpoint, error); } }
   return '';
 }
-
-function setImageFallback(img, label = 'تصویر در دسترس نیست') {
-  img.removeAttribute('src');
-  img.alt = label;
-  img.classList.add('image-failed');
-}
-
-async function hydrateImage(img, pageUrl) {
-  if (!img || !pageUrl) { setImageFallback(img); return false; }
-  const direct = await resolveMediaUrl(pageUrl);
-  if (!direct) { setImageFallback(img); return false; }
-  img.src = direct;
-  img.dataset.resolved = '1';
-  img.classList.remove('image-failed');
-  return true;
-}
+function setImageFallback(img, label='تصویر در دسترس نیست') { img.removeAttribute('src'); img.alt=label; img.classList.add('image-failed'); img.parentElement?.classList.add('image-failed'); }
+async function hydrateImage(img, pageUrl) { if (!img || !pageUrl) { setImageFallback(img); return false; } const direct=await resolveMediaUrl(pageUrl); if (!direct) { setImageFallback(img); return false; } img.src=direct; img.dataset.resolved='1'; img.classList.remove('image-failed'); img.parentElement?.classList.remove('image-failed'); return true; }
+function normalizeDate(value) { const raw=String(value||'').trim(); const match=raw.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/); if (!match) return raw; return [match[1],match[2].padStart(2,'0'),match[3].padStart(2,'0')].join('/'); }
 
 function renderNews() {
   if (!track || !dots || !allNews) return;
   track.innerHTML = news.map((item, index) => `
     <article class="news-card" data-index="${index}" tabindex="0" role="button" aria-label="مشاهده ${esc(item.title)}">
       <div class="news-cover"><img class="news-media" data-page-url="${esc(item.images[0] || '')}" alt="${esc(item.title)}" loading="lazy"></div>
-      <div class="news-body"><time class="news-date">${esc(item.date)}</time><h3>${esc(item.title)}</h3><p>${esc(item.excerpt)}</p><span class="card-link">مشاهده خبر ←</span></div>
+      <div class="news-body"><time class="news-date" datetime="${esc(normalizeDate(item.date))}">${esc(normalizeDate(item.date))}</time><h3>${esc(item.title)}</h3><p>${esc(item.excerpt)}</p><span class="card-link">مشاهده خبر ←</span></div>
     </article>`).join('');
   dots.innerHTML = news.map((_, index) => `<button type="button" aria-label="نمایش خبر ${index + 1}" data-dot="${index}" class="${index === 0 ? 'active' : ''}"></button>`).join('');
   allNews.innerHTML = news.map((item, index) => `
-    <button class="all-news-item" type="button" data-index="${index}"><div><time>${esc(item.date)}</time><h3>${esc(item.title)}</h3><p>${esc(item.excerpt)}</p></div><span aria-hidden="true">←</span></button>`).join('');
+    <button class="all-news-item" type="button" data-index="${index}"><div><time datetime="${esc(normalizeDate(item.date))}">${esc(normalizeDate(item.date))}</time><h3>${esc(item.title)}</h3><p>${esc(item.excerpt)}</p></div><span aria-hidden="true">←</span></button>`).join('');
   $$('.news-media', track).forEach(img => hydrateImage(img, img.dataset.pageUrl));
 }
 
@@ -184,7 +171,7 @@ async function showArticle(index, updateHash = true) {
   articleContent.innerHTML = `
     <span class="eyebrow">خبر و رویداد</span>
     <h2 id="articleTitle">${esc(item.title)}</h2>
-    <time class="article-meta">${esc(item.date)}</time>
+    <time class="article-meta">${esc(normalizeDate(item.date))}</time>
     <div class="article-gallery" id="articleGallery" aria-label="تصاویر خبر"></div>
     <div class="article-text">${articleParagraphs(item.body)}</div>`;
   if (updateHash) history.replaceState({ article: index }, '', '#news-' + index);
@@ -224,20 +211,12 @@ function showContent(slug) {
   $('#contentModalBody').innerHTML = `<div class="content-modal-body"><span class="eyebrow">معرفی</span><h2 id="contentTitle">${esc(item.title)}</h2><div class="article-meta">متن کامل</div><div class="article-text">${articleParagraphs(item.body)}</div></div>`;
   openModal('contentModal');
 }
-function setActiveDot(index) {
-  activeNews = (index + news.length) % news.length;
-  $$('.dots button').forEach((button, i) => button.classList.toggle('active', i === activeNews));
-}
-function goToNews(index) {
-  if (!news.length || !track) return;
-  activeNews = (index + news.length) % news.length;
-  track.querySelector(`[data-index="${activeNews}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  setActiveDot(activeNews);
-}
-function restartTimer() {
-  clearInterval(timer);
-  if (news.length > 1 && newsSectionVisible && !$('.modal.open')) timer = setInterval(() => goToNews(activeNews + 1), 5300);
-}
+function setActiveDot(index) { activeNews=(index+news.length)%news.length; $$('.dots button').forEach((button,i)=>button.classList.toggle('active',i===activeNews)); }
+function goToNews(index,{animate=true}={}) { if(!news.length||!track) return; activeNews=(index+news.length)%news.length; const card=track.querySelector(`[data-index="${activeNews}"]`); card?.scrollIntoView({behavior:animate?'smooth':'auto',block:'nearest',inline:'center'}); setActiveDot(activeNews); resetTimerProgress(); }
+function resetTimerProgress(){ timerStartedAt=performance.now(); const fill=$('#newsTimerFill'); if(fill) fill.style.width='0%'; }
+function stopTimer(){ clearInterval(timer); timer=null; }
+function restartTimer(){ stopTimer(); resetTimerProgress(); if(news.length<2||!newsSectionVisible||$('.modal.open')) return; timer=setInterval(()=>{ const elapsed=performance.now()-timerStartedAt; const fill=$('#newsTimerFill'); if(fill) fill.style.width=Math.min(100,(elapsed/TIMER_MS)*100)+'%'; if(elapsed>=TIMER_MS) goToNews(activeNews+1); },80); }
+
 function renderIranDate() {
   const element = $('#iranDate'); if (!element) return;
   try { element.textContent = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { timeZone:'Asia/Tehran', day:'numeric', month:'long', year:'numeric' }).format(new Date()); } catch (_) { element.textContent = ''; }
@@ -253,7 +232,7 @@ async function renderDoc(index = 0) {
   viewer.innerHTML = `<div class="document-loading" aria-live="polite">در حال بارگذاری سند…</div>`;
   const direct = await resolveMediaUrl(doc.url);
   if (!direct) {
-    viewer.innerHTML = `<div class="document-state"><strong>${esc(doc.title)}</strong><p>نمایش مستقیم سند در دسترس نیست.</p><a href="${esc(doc.url)}" target="_blank" rel="noopener noreferrer" class="document-open-link">مشاهده سند</a></div>`;
+    viewer.innerHTML = `<div class="document-state"><strong>${esc(doc.title)}</strong><p>تصویر سند در حال حاضر از منبع تصویری قابل دریافت نیست.</p></div>`;
     return;
   }
   viewer.innerHTML = `<button class="document-image-button" type="button" aria-label="بزرگ‌نمایی ${esc(doc.title)}"><img id="documentImage" src="${esc(direct)}" alt="${esc(doc.title)}"></button>`;
@@ -265,10 +244,10 @@ renderNews(); renderIranDate(); renderDoc(0);
 setInterval(renderIranDate, 60000);
 
 $('#openNews')?.addEventListener('click', () => openModal('newsModal'));
-$('#nextNews')?.addEventListener('click', () => { goToNews(activeNews + 1); restartTimer(); });
-$('#prevNews')?.addEventListener('click', () => { goToNews(activeNews - 1); restartTimer(); });
+$('#nextNews')?.addEventListener('click', () => goToNews(activeNews + 1));
+$('#prevNews')?.addEventListener('click', () => goToNews(activeNews - 1));
 
-dots?.addEventListener('click', event => { const dot = event.target.closest('[data-dot]'); if (dot) { goToNews(Number(dot.dataset.dot)); restartTimer(); } });
+dots?.addEventListener('click', event => { const dot = event.target.closest('[data-dot]'); if (dot) goToNews(Number(dot.dataset.dot)); });
 track?.addEventListener('click', event => { const card = event.target.closest('.news-card'); if (card) showArticle(Number(card.dataset.index)); });
 track?.addEventListener('keydown', event => { const card = event.target.closest('.news-card'); if (card && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); showArticle(Number(card.dataset.index)); } });
 allNews?.addEventListener('click', event => { const item = event.target.closest('.all-news-item'); if (item) { closeModal('newsModal'); showArticle(Number(item.dataset.index)); } });
@@ -290,12 +269,14 @@ document.addEventListener('keydown', event => {
 $('#lightboxPrev')?.addEventListener('click', () => moveLightbox(-1));
 $('#lightboxNext')?.addEventListener('click', () => moveLightbox(1));
 
-track?.addEventListener('pointerdown', () => clearInterval(timer));
+track?.addEventListener('pointerdown', stopTimer);
 track?.addEventListener('pointerup', restartTimer);
-track?.addEventListener('touchend', restartTimer, { passive:true });
+track?.addEventListener('pointercancel', restartTimer);
+track?.addEventListener('mouseenter', stopTimer);
+track?.addEventListener('mouseleave', restartTimer);
 const newsSection = $('.news-section');
 if ('IntersectionObserver' in window && newsSection) {
-  const observer = new IntersectionObserver(entries => { newsSectionVisible = entries[0]?.isIntersecting ?? true; if (newsSectionVisible) restartTimer(); else clearInterval(timer); }, { threshold:0.05 });
+  const observer = new IntersectionObserver(entries => { newsSectionVisible = entries[0]?.isIntersecting ?? true; if (newsSectionVisible) restartTimer(); else stopTimer(); }, { threshold:0.05 });
   observer.observe(newsSection);
 }
 window.addEventListener('hashchange', () => {
