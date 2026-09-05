@@ -19,7 +19,7 @@
     <div class="container brand-row">
       <div class="brand-side">
         <a href="https://ashayer.ir" target="_blank" rel="noopener" aria-label="پورتال سازمان امور عشایر ایران">
-          <img id="logoRight" src="https://ibb.co/pBqnqdqn" data-page-url="https://ibb.co/pBqnqdqn" alt="لوگوی سازمان امور عشایر ایران">
+          <img id="logoRight" src="https://i.ibb.co/ynSWCNmt/Nomadic-Affairs-Logo.webp" alt="لوگوی جدید سازمان امور عشایری">
         </a>
       </div>
       <div class="brand-title">
@@ -35,16 +35,16 @@
   <main>
     <section class="news-section container" id="news" aria-labelledby="newsTitle">
       <div class="section-top">
-        <div><span class="eyebrow">تازه‌ترین اطلاع‌رسانی</span><h2 id="newsTitle">آخرین اخبار</h2></div>
+        <div><h2 id="newsTitle">اطلاع‌رسانی شرکت</h2></div>
         <div class="news-actions">
           <time class="iran-date" id="iranDate" aria-label="تاریخ امروز"></time>
           <button class="icon-news" id="openNews" type="button" aria-label="نمایش همه اخبار" title="همه اخبار"><span class="news-icon-lines"><i></i><i></i><i></i></span></button>
         </div>
       </div>
       <div class="news-carousel-wrap">
-        <button class="carousel-arrow prev" id="prevNews" type="button" aria-label="خبر قبلی">→</button>
+        <button class="carousel-arrow prev" id="prevNews" type="button" aria-label="خبر قبلی">←</button>
         <div class="news-track" id="newsTrack" tabindex="0" aria-label="فهرست آخرین اخبار"></div>
-        <button class="carousel-arrow next" id="nextNews" type="button" aria-label="خبر بعدی">←</button>
+        <button class="carousel-arrow next" id="nextNews" type="button" aria-label="خبر بعدی">→</button>
       </div>
       <div class="news-timer" aria-label="زمان باقی‌مانده تا خبر بعدی"><span id="newsTimerFill"></span></div>
       <div class="dots" id="newsDots" aria-label="انتخاب خبر"></div>
@@ -59,12 +59,12 @@
 
     <section class="content-section container" id="ashayer">
       <div class="section-heading"><h2>عشایر؛ سرمایه ملّی</h2></div>
-      <div class="info-card"><div class="info-accent"></div><p id="ashayerExcerpt">جامعه عشایری ایران یکی از ارزشمندترین بخش‌های اجتماعی، فرهنگی و اقتصادی کشور است؛ جامعه‌ای که در تولید، حفظ میراث فرهنگی و ارتباط پایدار با سرزمین نقش مهمی دارد.</p><button class="read-more" type="button" data-content="ashayer">ادامه متن ←</button></div>
+      <div class="info-card"><div class="info-accent"></div><p id="ashayerExcerpt">جامعه عشایری ایران یکی از ارزشمندترین بخش‌های اجتماعی، فرهنگی و اقتصادی کشور است؛ جامعه‌ای که در تولید، حفظ میراث فرهنگی و ارتباط پایدار با سرزمین نقش مهمی دارد.</p><button class="read-more" type="button" data-content="ashayer">ادامه متن</button></div>
     </section>
 
     <section class="content-section container" id="cooperative">
       <div class="section-heading"><h2>چگونگی تعاونی</h2></div>
-      <div class="info-card"><div class="info-accent"></div><p id="cooperativeExcerpt">تعاونی، سازوکاری برای مشارکت افراد دارای نیازها و اهداف مشترک است؛ تعاونی عشایری نیز با سازمان‌دهی ظرفیت اعضا، تأمین نیازها، ارائه خدمات و تقویت تولید و بازار به جامعه عشایری کمک می‌کند.</p><button class="read-more" type="button" data-content="cooperative">ادامه متن ←</button></div>
+      <div class="info-card"><div class="info-accent"></div><p id="cooperativeExcerpt">تعاونی، سازوکاری برای مشارکت افراد دارای نیازها و اهداف مشترک است؛ تعاونی عشایری نیز با سازمان‌دهی ظرفیت اعضا، تأمین نیازها، ارائه خدمات و تقویت تولید و بازار به جامعه عشایری کمک می‌کند.</p><button class="read-more" type="button" data-content="cooperative">ادامه متن</button></div>
     </section>
 
     <section class="content-section container" id="documents">
@@ -115,7 +115,7 @@
   <div class="modal" id="newsModal" aria-hidden="true"><div class="modal-backdrop" data-close="newsModal"></div><div class="modal-panel news-list-panel" role="dialog" aria-modal="true" aria-labelledby="newsModalTitle"><button class="modal-close" type="button" data-close="newsModal" aria-label="بستن">×</button><span class="eyebrow">آرشیو اطلاع‌رسانی</span><h2 id="newsModalTitle">همه اخبار</h2><div class="all-news-list" id="allNewsList"></div></div></div>
   <div class="modal" id="articleModal" aria-hidden="true"><div class="modal-backdrop" data-close="articleModal"></div><article class="modal-panel article-panel" role="dialog" aria-modal="true" aria-labelledby="articleTitle"><button class="modal-close" type="button" data-close="articleModal" aria-label="بستن">×</button><div id="articleContent"></div></article></div>
   <div class="modal" id="contentModal" aria-hidden="true"><div class="modal-backdrop" data-close="contentModal"></div><article class="modal-panel article-panel" role="dialog" aria-modal="true" aria-labelledby="contentTitle"><button class="modal-close" type="button" data-close="contentModal" aria-label="بستن">×</button><div id="contentModalBody"></div></article></div>
-  <div class="modal lightbox-modal" id="lightboxModal" aria-hidden="true"><div class="modal-backdrop" data-lightbox-close></div><div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="نمایش تصویر"><button class="modal-close" type="button" data-lightbox-close aria-label="بستن">×</button><button class="lightbox-arrow next" id="lightboxNext" type="button" aria-label="تصویر بعدی">→</button><div class="lightbox-track" id="lightboxTrack"></div><button class="lightbox-arrow prev" id="lightboxPrev" type="button" aria-label="تصویر قبلی">←</button></div></div>
+  <div class="modal lightbox-modal" id="lightboxModal" aria-hidden="true"><div class="modal-backdrop" data-lightbox-close></div><div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="نمایش تصویر"><button class="modal-close" type="button" data-lightbox-close aria-label="بستن">×</button><button class="lightbox-arrow prev" id="lightboxPrev" type="button" aria-label="تصویر قبلی">→</button><div class="lightbox-track" id="lightboxTrack"></div><button class="lightbox-arrow next" id="lightboxNext" type="button" aria-label="تصویر بعدی">←</button></div></div>
 
   <script src="script.js"></script>
 </body>
