@@ -16,20 +16,9 @@
 </head>
 <body>
   <header class="site-header">
-    <div class="container brand-row">
-      <div class="brand-side">
-        <a href="https://ashayer.ir" target="_blank" rel="noopener" aria-label="پورتال سازمان امور عشایر ایران">
-          <img id="logoRight" src="https://i.ibb.co/ynSWCNmt/Nomadic-Affairs-Logo.webp" alt="لوگوی جدید سازمان امور عشایری">
-        </a>
-      </div>
-      <div class="brand-title">
-        <div class="persian-title">شرکت تعاونی عشایری کوه نور کهگیلویه</div>
-        <div class="title-line"></div>
-      </div>
-      <div class="brand-side">
-        <img id="logoLeft" src="https://ibb.co/v6pKKJQS" data-page-url="https://ibb.co/v6pKKJQS" alt="لوگوی شرکت تعاونی عشایری کوه نور">
-      </div>
-    </div>
+    <a class="site-header-link" href="https://ashayer.ir" target="_blank" rel="noopener" aria-label="ورود به پورتال سازمان امور عشایر کشور">
+      <img class="site-header-image" src="assets/site-header.png" alt="شرکت تعاونی عشایری کوه نور کهگیلویه" draggable="false">
+    </a>
   </header>
 
   <main>
@@ -42,9 +31,9 @@
         </div>
       </div>
       <div class="news-carousel-wrap">
-        <button class="carousel-arrow prev" id="prevNews" type="button" aria-label="خبر قبلی">←</button>
+        <button class="carousel-arrow prev" id="prevNews" type="button" aria-label="خبر قبلی"><span aria-hidden="true"></span></button>
         <div class="news-track" id="newsTrack" tabindex="0" aria-label="فهرست آخرین اخبار"></div>
-        <button class="carousel-arrow next" id="nextNews" type="button" aria-label="خبر بعدی">→</button>
+        <button class="carousel-arrow next" id="nextNews" type="button" aria-label="خبر بعدی"><span aria-hidden="true"></span></button>
       </div>
       <div class="news-timer" aria-label="زمان باقی‌مانده تا خبر بعدی"><span id="newsTimerFill"></span></div>
       <div class="dots" id="newsDots" aria-label="انتخاب خبر"></div>
@@ -97,7 +86,9 @@
           <h3>هیئت مدیره و مدیرعامل</h3>
           <div class="contact-row"><span>مدیرعامل</span><strong>محمدرحیم پروره</strong></div>
           <div class="contact-row"><span>رئیس هیئت مدیره</span><strong>محمدطلا فرهمندیان</strong></div>
-          <a class="rasmio-link" href="https://rasmio.com/" target="_blank" rel="noopener noreferrer">مشاهده اطلاعات شرکت در رسمیو <span>←</span></a>
+          <div class="contact-row"><span>تلفن</span><strong>۰۷۴۳۲۲۶۲۳۲۰</strong></div>
+          <div class="contact-row"><span>فکس</span><strong>۰۷۴۳۲۲۶۰۱۵۸</strong></div>
+          <a class="rasmio-link" href="https://rasmio.com/company/10861914839/direct/" target="_blank" rel="noopener noreferrer">مشاهده اطلاعات شرکت در رسمیو <span>←</span></a>
           <p class="contact-note">اطلاعات این بخش بر اساس مشخصاتی است که برای معرفی شرکت در سایت ثبت شده است.</p>
         </div>
       </div>
@@ -115,7 +106,7 @@
   <div class="modal" id="newsModal" aria-hidden="true"><div class="modal-backdrop" data-close="newsModal"></div><div class="modal-panel news-list-panel" role="dialog" aria-modal="true" aria-labelledby="newsModalTitle"><button class="modal-close" type="button" data-close="newsModal" aria-label="بستن">×</button><span class="eyebrow">آرشیو اطلاع‌رسانی</span><h2 id="newsModalTitle">همه اخبار</h2><div class="all-news-list" id="allNewsList"></div></div></div>
   <div class="modal" id="articleModal" aria-hidden="true"><div class="modal-backdrop" data-close="articleModal"></div><article class="modal-panel article-panel" role="dialog" aria-modal="true" aria-labelledby="articleTitle"><button class="modal-close" type="button" data-close="articleModal" aria-label="بستن">×</button><div id="articleContent"></div></article></div>
   <div class="modal" id="contentModal" aria-hidden="true"><div class="modal-backdrop" data-close="contentModal"></div><article class="modal-panel article-panel" role="dialog" aria-modal="true" aria-labelledby="contentTitle"><button class="modal-close" type="button" data-close="contentModal" aria-label="بستن">×</button><div id="contentModalBody"></div></article></div>
-  <div class="modal lightbox-modal" id="lightboxModal" aria-hidden="true"><div class="modal-backdrop" data-lightbox-close></div><div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="نمایش تصویر"><button class="modal-close" type="button" data-lightbox-close aria-label="بستن">×</button><button class="lightbox-arrow prev" id="lightboxPrev" type="button" aria-label="تصویر قبلی">→</button><div class="lightbox-track" id="lightboxTrack"></div><button class="lightbox-arrow next" id="lightboxNext" type="button" aria-label="تصویر بعدی">←</button></div></div>
+  <div class="modal lightbox-modal" id="lightboxModal" aria-hidden="true"><div class="modal-backdrop" data-lightbox-close></div><div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="نمایش تصویر"><button class="modal-close" type="button" data-lightbox-close aria-label="بستن">×</button><button class="lightbox-arrow prev" id="lightboxPrev" type="button" aria-label="تصویر قبلی"><span aria-hidden="true"></span></button><div class="lightbox-track" id="lightboxTrack"></div><button class="lightbox-arrow next" id="lightboxNext" type="button" aria-label="تصویر بعدی"><span aria-hidden="true"></span></button></div></div>
 
   <script src="script.js"></script>
 </body>
