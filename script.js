@@ -29,6 +29,8 @@ const fallbackContent = {
   }
 };
 
+const content = fallbackContent;
+
 const news = [
   {
     date: '۱۴۰۴',
@@ -126,7 +128,7 @@ function renderNews() {
   track.innerHTML = news.map((item, index) => `
     <article class="news-card" data-index="${index}" tabindex="0" role="button" aria-label="مشاهده ${esc(item.title)}">
       <div class="news-cover"><img class="news-media" data-page-url="${esc(item.images[0] || '')}" alt="${esc(item.title)}" loading="lazy"></div>
-      <div class="news-body"><time class="news-date" datetime="${esc(normalizeDate(item.date))}">${esc(normalizeDate(item.date))}</time><h3>${esc(item.title)}</h3><p>${esc(item.excerpt)}</p><span class="card-link">مشاهده خبر ←</span></div>
+      <div class="news-body"><time class="news-date" datetime="${esc(normalizeDate(item.date))}">${esc(normalizeDate(item.date))}</time><h3>${esc(item.title)}</h3><p>${esc(item.excerpt)}</p></div>
     </article>`).join('');
   dots.innerHTML = news.map((_, index) => `<button type="button" aria-label="نمایش خبر ${index + 1}" data-dot="${index}" class="${index === 0 ? 'active' : ''}"></button>`).join('');
   allNews.innerHTML = news.map((item, index) => `
@@ -134,16 +136,6 @@ function renderNews() {
   $$('.news-media', track).forEach(img => hydrateImage(img, img.dataset.pageUrl));
 }
 
-function lockBody() {
-  if (document.body.classList.contains('modal-lock')) return;
-  previousBodyOverflow = document.body.style.overflow;
-  document.body.classList.add('modal-lock');
-}
-function unlockBodyIfNoModal() {
-  if ($('.modal.open')) return;
-  document.body.classList.remove('modal-lock');
-  document.body.style.overflow = previousBodyOverflow;
-}
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
@@ -169,7 +161,6 @@ async function showArticle(index, updateHash = true) {
   const item = news[index];
   if (!item || !articleContent) return;
   articleContent.innerHTML = `
-    <span class="eyebrow">خبر و رویداد</span>
     <h2 id="articleTitle">${esc(item.title)}</h2>
     <time class="article-meta">${esc(normalizeDate(item.date))}</time>
     <div class="article-gallery" id="articleGallery" aria-label="تصاویر خبر"></div>
@@ -182,7 +173,7 @@ async function showArticle(index, updateHash = true) {
     if (!direct) return;
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'gallery-thumb';
-    button.innerHTML = `<img src="${esc(direct)}" alt="${esc(item.title)} - تصویر ${i + 1}" loading="lazy"><span class="image-index">${i + 1}</span>`;
+    button.innerHTML = `<img src="${esc(direct)}" alt="${esc(item.title)} - تصویر" loading="lazy">`;
     gallery.appendChild(button);
     button.addEventListener('click', () => openLightbox(resolvedImages.filter(Boolean), i, item.title));
   });
