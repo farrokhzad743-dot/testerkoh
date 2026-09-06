@@ -117,37 +117,65 @@ async function fetchText(url, timeoutMs = 9000) {
   try { const response = await fetch(url, { cache:'force-cache', signal:controller.signal }); if (!response.ok) throw new Error('HTTP '+response.status); return await response.text(); }
   finally { clearTimeout(timeout); }
 }
-async function resolveMediaUrl(pageUrl, attempts = 2) {
+async function resolveMediaUrl(pageUrl, attempts = 3) {
   if (!pageUrl) return '';
   if (/^(?:data:|blob:)/i.test(pageUrl)) return pageUrl;
   if (/^https:\/\/i\.ibb\.co\//i.test(pageUrl) || /\.(?:jpg|jpeg|png|webp|gif|svg)(?:[?#].*)?$/i.test(pageUrl)) return pageUrl;
-  const cached = cachedImageUrl(pageUrl); if (cached) return cached;
-  if (!/https:\/\/ibb\.co\//i.test(pageUrl)) return pageUrl;
+
+  const cached = cachedImageUrl(pageUrl);
+  if (cached && !/api\.microlink\.io/i.test(cached)) return cached;
+  if (!/^https:\/\/ibb\.co\//i.test(pageUrl)) return pageUrl;
+
   const encoded = encodeURIComponent(pageUrl);
   const resolvers = [
     `https://api.allorigins.win/raw?url=${encoded}`,
     `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
     `https://corsproxy.io/?url=${encoded}`,
+    `https://r.jina.ai/http://ibb.co/${pageUrl.split('/').pop()}`,
     `https://r.jina.ai/${pageUrl}`
   ];
+
   for (let attempt = 0; attempt < attempts; attempt++) {
     for (const endpoint of resolvers) {
       try {
-        const imageUrl = directImageFromText(await fetchText(endpoint, 12000));
-        if (imageUrl) { saveImageUrl(pageUrl, imageUrl); return imageUrl; }
-      } catch (error) { console.warn('Image resolver failed:', endpoint, error); }
+        const text = await fetchText(endpoint, 10000);
+        const imageUrl = directImageFromText(text);
+        if (imageUrl) {
+          saveImageUrl(pageUrl, imageUrl);
+          return imageUrl;
+        }
+      } catch (error) {
+        console.warn('Image resolver failed:', endpoint, error);
+      }
     }
   }
-  // Last-resort image delivery. This is deliberately after the free HTML resolvers
-  // so normal visitors do not consume the external metadata service unnecessarily.
-  // The returned URL behaves as a direct image endpoint.
-  const fallback=`https://api.microlink.io?url=${encoded}&embed=image.url`;
-  saveImageUrl(pageUrl, fallback);
-  return fallback;
-}
 
+  return '';
+}
 function setImageFallback(img, label='تصویر در دسترس نیست') { img.removeAttribute('src'); img.alt=label; img.classList.add('image-failed'); img.parentElement?.classList.add('image-failed'); }
-async function hydrateImage(img, pageUrl) { if (!img || !pageUrl) { setImageFallback(img); return false; } const direct=await resolveMediaUrl(pageUrl); if (!direct) { setImageFallback(img); return false; } img.src=direct; img.dataset.resolved='1'; img.classList.remove('image-failed'); img.parentElement?.classList.remove('image-failed'); return true; }
+async function hydrateImage(img, pageUrl) {
+  if (!img || !pageUrl) { setImageFallback(img); return false; }
+  const direct = await resolveMediaUrl(pageUrl, 3);
+  if (!direct) { setImageFallback(img); return false; }
+  img.dataset.pageUrl = pageUrl;
+  img.dataset.resolved = '1';
+  img.dataset.retry = '0';
+  img.onload = () => {
+    img.classList.remove('image-failed');
+    img.parentElement?.classList.remove('image-failed');
+  };
+  img.onerror = async () => {
+    const retry = Number(img.dataset.retry || '0');
+    if (retry >= 1) { setImageFallback(img); return; }
+    img.dataset.retry = String(retry + 1);
+    try { localStorage.removeItem(imageCacheKey(pageUrl)); } catch (_) {}
+    const retryUrl = await resolveMediaUrl(pageUrl, 3);
+    if (retryUrl) img.src = retryUrl;
+    else setImageFallback(img);
+  };
+  img.src = direct;
+  return true;
+}
 function normalizeDate(value) { const raw=String(value||'').trim(); const match=raw.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/); if (!match) return raw; return [match[1],match[2].padStart(2,'0'),match[3].padStart(2,'0')].join('/'); }
 
 function renderNews() {
@@ -206,7 +234,7 @@ async function showArticle(index) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'gallery-thumb';
-    button.innerHTML = `<img src="${esc(direct)}" alt="${esc(item.title)} - تصویر ${i + 1}" loading="lazy">`;
+    button.innerHTML = `<img src="${esc(direct)}" alt="${esc(item.title)} - تصویر ${i + 1}" loading="lazy" onerror="this.closest('button')?.remove()">`;
     gallery.appendChild(button);
     const imageIndex = resolvedImages.length - 1;
     button.addEventListener('click', () => openLightbox(resolvedImages, imageIndex, item.title));
