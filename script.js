@@ -94,13 +94,22 @@ function imageCacheKey(pageUrl) { return 'kohenor-img:' + pageUrl; }
 function cachedImageUrl(pageUrl) { try { return localStorage.getItem(imageCacheKey(pageUrl)) || ''; } catch (_) { return ''; } }
 function saveImageUrl(pageUrl, imageUrl) { try { localStorage.setItem(imageCacheKey(pageUrl), imageUrl); } catch (_) {} }
 function directImageFromText(text) {
-  const html = String(text || '');
+  const raw = String(text || '');
+  try {
+    const json = JSON.parse(raw);
+    const candidate = json?.data?.image?.url || json?.image?.url || '';
+    if (candidate) return candidate;
+  } catch (_) {}
   const patterns = [
     /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
     /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
-    /https:\/\/i\.ibb\.co\/[A-Za-z0-9._\/-]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^\s"'<>]*)?/i
+    /!\[[^\]]*\]\((https:\/\/i\.ibb\.co\/[^)]+)\)/i,
+    /(https:\/\/i\.ibb\.co\/[A-Za-z0-9._\/-]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^\s"'<>]*)?)/i
   ];
-  for (const pattern of patterns) { const match = html.match(pattern); if (match) return (match[1] || match[0]).replace(/&amp;/g, '&').replace(/[),.;]+$/g, ''); }
+  for (const pattern of patterns) {
+    const match = raw.match(pattern);
+    if (match) return (match[1] || match[0]).replace(/&amp;/g, '&').replace(/[),.;]+$/g, '');
+  }
   return '';
 }
 async function fetchText(url, timeoutMs = 9000) {
@@ -129,7 +138,12 @@ async function resolveMediaUrl(pageUrl, attempts = 2) {
       } catch (error) { console.warn('Image resolver failed:', endpoint, error); }
     }
   }
-  return '';
+  // Last-resort image delivery. This is deliberately after the free HTML resolvers
+  // so normal visitors do not consume the external metadata service unnecessarily.
+  // The returned URL behaves as a direct image endpoint.
+  const fallback=`https://api.microlink.io?url=${encoded}&embed=image.url`;
+  saveImageUrl(pageUrl, fallback);
+  return fallback;
 }
 
 function setImageFallback(img, label='تصویر در دسترس نیست') { img.removeAttribute('src'); img.alt=label; img.classList.add('image-failed'); img.parentElement?.classList.add('image-failed'); }
